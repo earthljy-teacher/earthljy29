@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>천체 탐험 미션: 금성의 위상과 태양계 모형 대결</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{
+  --font:'a시네마L','a시네마M','a시네마B','a시네마','aCinema L','Malgun Gothic','Apple SD Gothic Neo',sans-serif;
+  --bg:#060a1c; --panel:rgba(18,26,58,.88); --line:#2d3b7c;
+  --blue:#5ec8ff; --red:#ff6b7a; --green:#5ff0a0; --orange:#ffb454; --yellow:#ffe066; --purple:#c39bff;
+  --text:#e8ecff; --muted:#9aa6d6;
+}
+*{box-sizing:border-box;font-family:var(--font);font-weight:normal !important}
+b,strong,h1,h2,h3,h4,th{font-weight:normal}
+body{margin:0;color:var(--text);background:var(--bg);
+  background-image:radial-gradient(1px 1px at 10% 20%,#fff8 50%,transparent 51%),radial-gradient(1px 1px at 70% 80%,#fff6 50%,transparent 51%),
+  radial-gradient(1.5px 1.5px at 40% 60%,#fff7 50%,transparent 51%),radial-gradient(1px 1px at 85% 15%,#fff9 50%,transparent 51%),
+  radial-gradient(ellipse at top,#16215a 0%,#060a1c 60%);background-size:300px 300px,420px 420px,520px 520px,260px 260px,100% 100%;
+  min-height:100vh;font-size:16px;line-height:1.6}
+.c-blue{color:var(--blue)}.c-red{color:var(--red)}.c-green{color:var(--green)}.c-orange{color:var(--orange)}.c-yellow{color:var(--yellow)}.c-purple{color:var(--purple)}.c-muted{color:var(--muted)}
+header{display:flex;justify-content:space-between;align-items:center;padding:12px 22px;background:linear-gradient(90deg,#0d1640,#1b1046);border-bottom:2px solid #3a4aa0;position:sticky;top:0;z-index:20}
+header .title{font-size:24px;color:var(--yellow);letter-spacing:1px}
+header .brand{display:flex;align-items:center;gap:10px;font-size:15px;color:var(--blue)}
+header .brand img{width:52px;height:52px;border-radius:50%;background:#fff}
+.topbar{display:flex;flex-wrap:wrap;gap:14px;align-items:center;padding:10px 22px;background:rgba(10,15,40,.8);border-bottom:1px solid var(--line)}
+.topbar input{background:#0c1433;border:1px solid var(--line);color:var(--text);padding:6px 10px;border-radius:8px;font-size:16px;width:160px}
+.prog{flex:1;min-width:200px;height:14px;background:#0c1433;border-radius:10px;border:1px solid var(--line);overflow:hidden}
+.prog>div{height:100%;width:0;background:linear-gradient(90deg,var(--blue),var(--green));transition:width .5s}
+nav{display:flex;gap:10px;padding:14px 22px;flex-wrap:wrap}
+nav button{flex:1;min-width:170px;padding:12px;border-radius:12px;border:2px solid var(--line);background:#101a44;color:var(--muted);font-size:17px;cursor:pointer;transition:.2s}
+nav button.unlocked{color:var(--text);border-color:#4a5cc0}
+nav button.active{background:linear-gradient(135deg,#2b3fa8,#6a2fb0);color:#fff;border-color:var(--yellow);box-shadow:0 0 16px #6a6aff88}
+nav button:disabled{cursor:not-allowed;opacity:.55}
+main{padding:0 22px 40px}
+.stage{display:none}.stage.show{display:block;animation:fade .4s}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:14px}
+.panel h3{margin:0 0 8px;font-size:19px;color:var(--yellow)}
+.goal{border-left:4px solid var(--orange)}
+.grid{display:grid;grid-template-columns:minmax(0,560px) minmax(0,1fr);gap:16px}
+@media(max-width:1050px){.grid{grid-template-columns:1fr}}
+canvas{display:block;max-width:100%;border-radius:12px}
+.cvwrap{background:#040716;border:1px solid var(--line);border-radius:14px;padding:8px}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.ctrl{margin:8px 0}
+.ctrl label{display:block;color:var(--blue);font-size:15px}
+input[type=range]{width:100%;accent-color:#ffb454;height:22px}
+.btn{padding:9px 16px;border-radius:10px;border:1px solid #5466c8;background:#1a2768;color:#fff;font-size:16px;cursor:pointer;transition:.15s}
+.btn:hover{background:#2a3a90;transform:translateY(-1px)}
+.btn.orange{background:#7a4410;border-color:var(--orange)}.btn.green{background:#14603c;border-color:var(--green)}
+.btn.purple{background:#4a2380;border-color:var(--purple)}
+.read{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.read div{background:#0b1230;border:1px solid #24306a;border-radius:10px;padding:7px 10px;font-size:15px}
+.read span.v{display:block;font-size:20px}
+.mlist{list-style:none;padding:0;margin:0}
+.mlist li{padding:6px 4px;border-bottom:1px dashed #2a3670;font-size:15.5px}
+.mlist li .st{display:inline-block;width:26px}
+.mini-prog{height:8px;background:#0c1433;border-radius:6px;overflow:hidden;margin-top:4px}
+.mini-prog>div{height:100%;background:var(--orange);width:0;transition:width .3s}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{border:1px solid #2a3670;padding:5px 6px;text-align:center}
+th{background:#16205a;color:var(--blue)}
+.q{background:#0b1230;border:1px solid #2a3670;border-radius:12px;padding:14px;margin-bottom:12px}
+.q .qt{font-size:17px;margin-bottom:8px}
+.opts{display:grid;gap:8px}
+.opt{text-align:left;padding:10px 12px;border-radius:10px;border:1px solid #3a4aa0;background:#111b48;color:var(--text);font-size:16px;cursor:pointer}
+.opt:hover:not(:disabled){background:#1c2a6c}
+.opt.right{background:#0f4d33;border-color:var(--green);color:#dfffee}
+.opt.wrong{background:#5a1824;border-color:var(--red);color:#ffdfe3}
+.opt:disabled{cursor:default}
+.fb{margin-top:10px;padding:10px 12px;border-radius:10px;display:none;font-size:15.5px}
+.fb.ok{display:block;background:#0d3b28;border:1px solid var(--green);color:#cfffe6}
+.fb.no{display:block;background:#3e1219;border:1px solid var(--red);color:#ffd6dc}
+.badge{display:inline-block;padding:4px 10px;border-radius:20px;border:1px solid #44508f;margin:3px;font-size:14px;color:var(--muted)}
+.badge.on{border-color:var(--green);color:var(--green);background:#0d3b28;box-shadow:0 0 10px #5ff0a055}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media(max-width:700px){.cards{grid-template-columns:repeat(2,1fr)}}
+.card{background:#0b1230;border:2px solid #2a3670;border-radius:12px;padding:8px;cursor:pointer;text-align:center;transition:.2s}
+.card:hover{border-color:var(--orange);transform:translateY(-3px)}
+.card.right{border-color:var(--green);background:#0d3b28}.card.wrong{border-color:var(--red);background:#3e1219}
+.card canvas{margin:0 auto}
+.banner{display:none;background:linear-gradient(90deg,#5a2f00,#3a1b6a);border:1px solid var(--orange);border-radius:12px;padding:10px 14px;margin-bottom:12px}
+.banner.show{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.hidden{display:none !important}
+#modal{position:fixed;inset:0;background:#000a;display:none;align-items:center;justify-content:center;z-index:99}
+#modal.show{display:flex}
+#modal .box{background:linear-gradient(160deg,#1b2560,#2b1555);border:2px solid var(--yellow);border-radius:18px;padding:26px 30px;max-width:520px;text-align:center;box-shadow:0 0 40px #ffe06655;animation:pop .35s}
+@keyframes pop{from{transform:scale(.7);opacity:0}to{transform:scale(1);opacity:1}}
+#modal .big{font-size:52px}
+.grade{font-size:84px;line-height:1;width:130px;height:130px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:4px solid var(--yellow);margin:0 auto}
+.flash{animation:flash 1s 2}
+@keyframes flash{50%{box-shadow:0 0 22px var(--orange)}}
+.tag{display:inline-block;padding:2px 8px;border-radius:6px;background:#0b1230;border:1px solid #33408a;font-size:14px}
+</style>
+</head>
+<body>
+<header>
+  <div class="title">🪐 천체 탐험 미션: 금성의 위상과 태양계 모형 대결</div>
+  <div class="brand"><img src="data:image/png;base64,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" alt="EARTH LJY 로고"><div>EARTH LJY<br><span class="c-muted">earthljy@ai.jne.kr</span></div></div>
+</header>
+<div class="topbar">
+  <span class="c-orange">👨‍🚀 탐험 대원 이름</span><input id="stuName" placeholder="이름을 입력하세요">
+  <span class="c-muted">미션 진행도</span><div class="prog"><div id="progBar"></div></div>
+  <span class="tag">🖱 조작 횟수 <span id="opsCnt" class="c-blue">0</span></span>
+</div>
+<nav>
+  <button id="nav1" class="unlocked active" onclick="go(1)">🌍 STAGE 1 · 지구 중심설</button>
+  <button id="nav2" disabled onclick="go(2)">🔒 STAGE 2 · 태양 중심설</button>
+  <button id="nav3" disabled onclick="go(3)">🔒 STAGE 3 · 최종 퀴즈</button>
+  <button id="nav4" disabled onclick="go(4)">🔒 🏆 미션 성공</button>
+</nav>
+<main>
+<div class="banner" id="remedyBanner"><span id="remedyText"></span><button class="btn purple" onclick="go(4)">🏆 결과 다시 보기</button></div>
+
+<!-- ================= STAGE 1 ================= -->
+<section class="stage show" id="stage1">
+  <div class="panel goal">
+    <h3>🎯 STAGE 1 · 지구 중심설(프톨레마이오스) 모형 탐구</h3>
+    학습 목표: 지구 중심설 모형에서 금성이 공전할 때 나타나는 <span class="c-orange">위상</span>과 <span class="c-blue">크기(시지름) 변화</span>의 한계를 이해한다.<br>
+    <span class="c-muted">지구 중심설에서 금성은 <span class="c-purple">주전원</span>(작은 원)을 따라 돌고, 주전원의 중심은 항상 <span class="c-yellow">지구–태양을 잇는 선 위</span>에 있어요. 슬라이더를 움직이거나 그림 위를 마우스로 끌어 금성을 이동시켜 보세요.</span>
+  </div>
+  <div class="grid">
+    <div>
+      <div class="cvwrap"><canvas id="cv1" width="540" height="540"></canvas></div>
+      <div class="panel" style="margin-top:12px">
+        <div class="ctrl"><label>🪐 주전원 위 금성의 위치 : <span id="th1v" class="c-orange">0°</span></label><input type="range" id="th1" min="0" max="359" value="200"></div>
+        <div class="ctrl"><label>☀️ 태양의 위치(지구 둘레 공전) : <span id="ph1v" class="c-yellow">90°</span></label><input type="range" id="ph1" min="0" max="359" value="90"></div>
+        <div class="row">
+          <button class="btn" id="play1">▶ 자동 공전</button>
+          <span class="c-muted">속도</span><input type="range" id="spd1" min="0.3" max="3" step="0.1" value="1" style="width:120px">
+          <button class="btn orange" id="rec1">📸 관측 기록하기</button>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="panel">
+        <h3>🔭 지구에서 본 금성 (망원경 시야 / 하늘)</h3>
+        <div class="row" style="align-items:flex-start">
+          <canvas id="scope1" width="260" height="230"></canvas>
+          <div style="flex:1;min-width:200px">
+            <div class="read">
+              <div>이각<span class="v c-blue" id="r1e">-</span></div>
+              <div>지구–금성 거리<span class="v c-green" id="r1d">-</span></div>
+              <div>상대 시지름<span class="v c-orange" id="r1s">-</span></div>
+              <div>밝게 보이는 비율<span class="v c-yellow" id="r1k">-</span></div>
+            </div>
+            <div style="margin-top:8px">위상 모양 : <span id="r1p" class="c-orange" style="font-size:20px">-</span></div>
+          </div>
+        </div>
+        <canvas id="sky1" width="560" height="110" style="margin-top:10px;width:100%"></canvas>
+      </div>
+      <div class="panel">
+        <h3>🗺 미션 체크리스트</h3>
+        <ul class="mlist">
+          <li><span class="st" id="m1a">⬜</span>금성을 주전원 위에서 이동시켜 구간 탐색하기 (<span id="m1aN" class="c-orange">0</span>/12 구간, <span class="c-muted">최소 6 · 목표 11 이상</span>)<div class="mini-prog"><div id="m1aBar"></div></div></li>
+          <li><span class="st" id="m1b">⬜</span>📸 관측 기록 남기기 (<span id="m1bN" class="c-orange">0</span>회, <span class="c-muted">최소 1 · 목표 3회 이상</span>)</li>
+          <li><span class="st" id="m1c">⬜</span>⭐ 금성을 <span class="c-orange">태양 너머 외합 목표 지점</span>으로 보내기 시도 → 가능한지 확인!</li>
+          <li><span class="st" id="m1d">⬜</span>체크포인트 문항 2개 통과하기</li>
+        </ul>
+        <div id="s1msg" class="fb"></div>
+      </div>
+      <div class="panel">
+        <h3>📒 관측 기록장</h3>
+        <table><thead><tr><th>#</th><th>이각</th><th>거리</th><th>상대 시지름</th><th>밝은 비율</th><th>위상 모양</th></tr></thead><tbody id="tb1"><tr><td colspan="6" class="c-muted">아직 기록이 없어요.</td></tr></tbody></table>
+      </div>
+    </div>
+  </div>
+  <div class="panel hidden" id="cpPanel">
+    <h3>🚩 체크포인트 문항</h3>
+    <div id="cpBox"></div>
+  </div>
+  <div class="panel c-muted" id="cpLock">🔒 체크포인트 문항은 <span class="c-orange">구간 6개 이상 탐색</span> + <span class="c-orange">관측 기록 1회 이상</span>을 하면 열려요.</div>
+</section>
+
+<!-- ================= STAGE 2 ================= -->
+<section class="stage" id="stage2">
+  <div class="panel goal">
+    <h3>🎯 STAGE 2 · 태양 중심설(코페르니쿠스) 모형 탐구</h3>
+    학습 목표: 태양 중심설 모형에서 금성의 <span class="c-orange">위상이 달처럼 다양하게 변하고</span>, <span class="c-blue">시지름이 크게(약 6배) 달라지는 원인</span>을 파악한다.<br>
+    <span class="c-muted">금성(공전 주기 약 225일)과 지구(약 365일)를 공전시켜 <span class="c-green">내합, 외합, 동방 최대 이각, 서방 최대 이각</span>에 금성을 배치하고 📸 관측 기록을 남기세요. 그림 위의 흐린 원은 현재 지구 위치에서의 네 위치를 알려 주는 안내 표시예요. 금성이나 지구를 마우스로 직접 끌 수도 있어요.</span>
+  </div>
+  <div class="grid">
+    <div>
+      <div class="cvwrap"><canvas id="cv2" width="540" height="540"></canvas></div>
+      <div class="panel" style="margin-top:12px">
+        <div class="ctrl"><label>🪐 금성의 공전 위치 : <span id="lv2v" class="c-orange">0°</span></label><input type="range" id="lv2" min="0" max="359" value="30"></div>
+        <div class="ctrl"><label>🌍 지구의 공전 위치 : <span id="le2v" class="c-blue">0°</span></label><input type="range" id="le2" min="0" max="359" value="270"></div>
+        <div class="row">
+          <div style="flex:1;min-width:180px"><label class="c-orange">금성 공전 속도 ×<span id="sv2v">1.0</span></label><input type="range" id="sv2" min="0" max="3" step="0.1" value="1"></div>
+          <div style="flex:1;min-width:180px"><label class="c-blue">지구 공전 속도 ×<span id="se2v">1.0</span></label><input type="range" id="se2" min="0" max="3" step="0.1" value="1"></div>
+        </div>
+        <div class="row" style="margin-top:6px">
+          <button class="btn" id="play2">▶ 공전 시작</button>
+          <button class="btn" id="back2">◀ 1일</button><button class="btn" id="fwd2">1일 ▶</button>
+          <span class="tag">⏱ 경과 <span id="day2" class="c-yellow">0</span>일</span>
+          <button class="btn orange" id="rec2">📸 관측 기록하기</button>
+        </div>
+        <div id="near2" style="margin-top:8px" class="c-muted">현재 위치: -</div>
+      </div>
+    </div>
+    <div>
+      <div class="panel">
+        <h3>🔭 천구 뷰 · 지구에서 본 금성</h3>
+        <div class="row" style="align-items:flex-start">
+          <canvas id="scope2" width="260" height="230"></canvas>
+          <div style="flex:1;min-width:200px">
+            <div class="read">
+              <div>이각<span class="v c-blue" id="r2e">-</span></div>
+              <div>지구–금성 거리<span class="v c-green" id="r2d">-</span></div>
+              <div>시지름<span class="v c-orange" id="r2s">-</span></div>
+              <div>밝게 보이는 비율<span class="v c-yellow" id="r2k">-</span></div>
+            </div>
+            <div style="margin-top:8px">위상 모양 : <span id="r2p" class="c-orange" style="font-size:20px">-</span></div>
+            <div class="c-muted" id="r2t" style="font-size:14px"></div>
+          </div>
+        </div>
+        <canvas id="sky2" width="560" height="110" style="margin-top:10px;width:100%"></canvas>
+      </div>
+      <div class="panel">
+        <h3>🗺 미션 체크리스트</h3>
+        <div>관측 위치 배지 (<span class="c-muted">최소 2개 · 목표 4개</span>)<br>
+          <span class="badge" id="bg_inf">🌑 내합</span><span class="badge" id="bg_east">🌓 동방 최대 이각</span><span class="badge" id="bg_sup">🌕 외합</span><span class="badge" id="bg_west">🌗 서방 최대 이각</span>
+        </div>
+        <div id="ratio2" class="c-muted" style="margin-top:8px">📏 내합과 외합을 모두 기록하면 시지름 비교 결과가 나타나요.</div>
+        <div id="s2msg" class="fb"></div>
+      </div>
+      <div class="panel">
+        <h3>📒 관측 기록장</h3>
+        <table><thead><tr><th>#</th><th>위치</th><th>이각</th><th>거리(AU)</th><th>시지름</th><th>밝은 비율</th><th>모양</th></tr></thead><tbody id="tb2"><tr><td colspan="7" class="c-muted">아직 기록이 없어요.</td></tr></tbody></table>
+      </div>
+    </div>
+  </div>
+  <div class="panel hidden" id="fmPanel">
+    <h3>🌕 최종 미션: 보름달 모양의 금성을 찾아라!</h3>
+    <div style="margin-bottom:8px">아래 4개의 관측 위치 중 지구에서 금성이 <span class="c-yellow">보름달 모양(가장 둥글게)</span>으로 보이는 위치를 클릭하세요.</div>
+    <div class="cards" id="fmCards"></div>
+    <div id="fmFb" class="fb"></div>
+  </div>
+  <div class="panel c-muted" id="fmLock">🔒 관측 위치 배지를 <span class="c-orange">2개 이상</span> 모으면 최종 미션이 열려요.</div>
+</section>
+
+<!-- ================= STAGE 3 ================= -->
+<section class="stage" id="stage3">
+  <div class="panel goal">
+    <h3>🎯 STAGE 3 · 학습 점검 최종 퀴즈</h3>
+    STAGE 1·2에서 관찰한 내용을 떠올리며 문제를 풀어 보세요. 틀리면 <span class="c-red">피드백</span>을 읽고 다시 도전할 수 있어요. <span class="c-muted">(첫 시도 정답이 평가에 반영됩니다.)</span>
+  </div>
+  <div id="quizBox"></div>
+  <div class="panel c-muted" id="quizDone">모든 문항을 맞히면 🏆 미션 성공 탭이 열려요.</div>
+</section>
+
+<!-- ================= RESULT ================= -->
+<section class="stage" id="stage4">
+  <div class="panel" style="text-align:center">
+    <div class="big" style="font-size:40px">🏆 MISSION COMPLETE</div>
+    <div class="c-muted">금성의 위상과 태양계 모형 대결 · 탐험 보고서</div>
+    <div class="row" style="justify-content:center;margin-top:10px">
+      <span class="c-orange">탐험 대원</span><input id="stuName2" placeholder="이름 입력" style="background:#0c1433;border:1px solid var(--line);color:var(--text);padding:6px 10px;border-radius:8px;font-size:16px;width:160px">
+      <button class="btn green" onclick="saveImage()">🖼 이미지 저장</button>
+      <button class="btn purple" onclick="savePDF()">📄 PDF 다운로드</button>
+    </div>
+  </div>
+  <div class="grid" style="grid-template-columns:300px 1fr">
+    <div class="panel" style="text-align:center">
+      <div class="c-muted">종합 평가 등급</div>
+      <div class="grade" id="gradeBig">-</div>
+      <div style="margin-top:8px">총점 <span id="scoreBig" class="c-yellow" style="font-size:26px">0</span> / 100</div>
+      <div class="c-muted" style="font-size:13px;margin-top:6px">A 90↑ · B 80↑ · C 70↑ · D 60↑ · F 60 미만</div>
+    </div>
+    <div class="panel">
+      <h3>📊 수행 과정 평가</h3>
+      <table><thead><tr><th>평가 항목</th><th>수행 내용</th><th>점수</th></tr></thead><tbody id="scoreTb"></tbody></table>
+    </div>
+  </div>
+  <div class="panel"><h3>📝 수행 과정 종합 피드백</h3><div id="narr"></div></div>
+  <div class="panel" id="remedyPanel"><h3>⬆ 등급 올리기 · 보충 미션</h3><div id="remedyList"></div></div>
+  <div class="panel"><h3>❓ 퀴즈 응답 요약</h3><div id="quizSum"></div></div>
+</section>
+</main>
+
+<div id="modal"><div class="box"><div class="big" id="mIcon">🔓</div><div id="mTitle" style="font-size:24px;color:var(--yellow)"></div><div id="mBody" style="margin:10px 0 16px"></div><button class="btn orange" id="mBtn">확인</button></div></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const FONT="'a시네마L','a시네마M','a시네마B','a시네마','Malgun Gothic',sans-serif";
+const D2R=Math.PI/180, R2D=180/Math.PI;
+const norm180=a=>((a+180)%360+360)%360-180;
+const LOGO="data:image/png;base64,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";
+
+/* ---------- 상태 ---------- */
+const S={ops:0,unlocked:[true,false,false,false],stage:1,remedy:null,
+  s1:{phi:90,theta:200,playing:false,bins:new Set(),records:[],blockedSeen:false,cp:[mkItem(),mkItem()]},
+  s2:{lE:270,lV:30,sE:1,sV:1,playing:false,day:0,badges:{inf:false,sup:false,east:false,west:false},rec:{},records:[],fm:mkItem()},
+  quiz:[]};
+function mkItem(){return{done:false,first:null,remedy:false,remedied:false,wrongPicks:[]}}
+function op(){S.ops++;$('opsCnt').textContent=S.ops;updateProgress()}
+
+/* ---------- 공통 그리기 ---------- */
+function makeStars(n,w,h){const a=[];for(let i=0;i<n;i++)a.push([Math.random()*w,Math.random()*h,Math.random()*1.3+.2,Math.random()*.6+.3]);return a}
+const stars1=makeStars(140,540,540),stars2=makeStars(140,540,540);
+function drawStars(ctx,st){for(const s of st){ctx.fillStyle=`rgba(255,255,255,${s[3]})`;ctx.fillRect(s[0],s[1],s[2],s[2])}}
+function drawSun(ctx,x,y,r){const g=ctx.createRadialGradient(x,y,2,x,y,r*2.2);g.addColorStop(0,'#fffbe0');g.addColorStop(.35,'#ffd34d');g.addColorStop(.5,'rgba(255,170,40,.5)');g.addColorStop(1,'rgba(255,140,0,0)');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r*2.2,0,7);ctx.fill();ctx.fillStyle='#ffe27a';ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill()}
+function drawEarth(ctx,x,y,r){const g=ctx.createRadialGradient(x-r/3,y-r/3,1,x,y,r);g.addColorStop(0,'#9fe0ff');g.addColorStop(1,'#1f6fd1');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill();
+  ctx.fillStyle='#3fbf5a';ctx.beginPath();ctx.arc(x-r*.3,y-r*.1,r*.35,0,7);ctx.fill();ctx.beginPath();ctx.arc(x+r*.35,y+r*.3,r*.25,0,7);ctx.fill()}
+function drawLitBody(ctx,x,y,r,ang){ctx.fillStyle='#3a3550';ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill();
+  ctx.fillStyle='#fff1b8';ctx.beginPath();ctx.arc(x,y,r,ang-Math.PI/2,ang+Math.PI/2);ctx.closePath();ctx.fill();
+  ctx.strokeStyle='#ffe9a0';ctx.lineWidth=1;ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.stroke()}
+function circle(ctx,x,y,r,col,dash,w){ctx.save();ctx.strokeStyle=col;ctx.lineWidth=w||1.2;ctx.setLineDash(dash||[]);ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.stroke();ctx.restore()}
+function line(ctx,x1,y1,x2,y2,col,dash,w){ctx.save();ctx.strokeStyle=col;ctx.lineWidth=w||1.2;ctx.setLineDash(dash||[]);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.restore()}
+function text(ctx,t,x,y,col,size,align){ctx.fillStyle=col;ctx.font=`${size||14}px ${FONT}`;ctx.textAlign=align||'center';ctx.fillText(t,x,y)}
+/* 위상 그리기: k=밝은 비율, sunDir=+1 태양이 오른쪽, -1 왼쪽 */
+function drawPhase(ctx,cx,cy,r,k,sunDir){
+  ctx.save();ctx.fillStyle='#1f1d2c';ctx.beginPath();ctx.arc(cx,cy,r,0,7);ctx.fill();
+  const lit=ctx.createRadialGradient(cx,cy,r*.1,cx,cy,r);lit.addColorStop(0,'#fffbe6');lit.addColorStop(1,'#f3d98a');
+  ctx.fillStyle=lit;ctx.beginPath();
+  if(sunDir>0)ctx.arc(cx,cy,r,-Math.PI/2,Math.PI/2,false);else ctx.arc(cx,cy,r,Math.PI/2,Math.PI*1.5,false);
+  ctx.closePath();ctx.fill();
+  const w=r*Math.abs(2*k-1);ctx.beginPath();ctx.ellipse(cx,cy,Math.max(w,.01),r,0,0,7);ctx.fillStyle=k>0.5?lit:'#1f1d2c';ctx.fill();
+  ctx.strokeStyle='rgba(255,240,200,.35)';ctx.lineWidth=1;ctx.beginPath();ctx.arc(cx,cy,r,0,7);ctx.stroke();ctx.restore()}
+function drawScope(cv,k,rpx,sunDir,note){const c=cv.getContext('2d'),w=cv.width,h=cv.height;c.clearRect(0,0,w,h);
+  c.fillStyle='#000';c.beginPath();c.arc(w/2,h/2,108,0,7);c.fill();circle(c,w/2,h/2,108,'#4a5aa8',null,3);
+  line(c,w/2-108,h/2,w/2+108,h/2,'rgba(120,140,220,.25)');line(c,w/2,h/2-108,w/2,h/2+108,'rgba(120,140,220,.25)');
+  drawPhase(c,w/2,h/2,Math.max(4,Math.min(rpx,100)),k,sunDir);
+  text(c,'🔭 망원경 시야',8,18,'#9aa6d6',13,'left');text(c,sunDir>0?'태양 방향 →':'← 태양 방향',sunDir>0?w-6:6,h-8,'#ffd34d',13,sunDir>0?'right':'left');
+  if(note)text(c,note,w/2,h-8,'#ff9aa5',13)}
+function drawSky(cv,e,k,hidden,model){const c=cv.getContext('2d'),w=cv.width,h=cv.height;c.clearRect(0,0,w,h);
+  const g=c.createLinearGradient(0,0,0,h);g.addColorStop(0,'#0b1745');g.addColorStop(1,'#3a2a6a');c.fillStyle=g;c.fillRect(0,0,w,h);
+  const cx=w/2,sc=(w/2-40)/50;
+  for(let a=-50;a<=50;a+=10){const x=cx-a*sc;line(c,x,h-22,x,h-16,'#8090d0');text(c,Math.abs(a)+'°',x,h-4,'#8090d0',11)}
+  line(c,20,h-22,w-20,h-22,'#8090d0');
+  text(c,'← 동쪽',8,16,'#5ec8ff',13,'left');text(c,'서쪽 →',w-8,16,'#5ec8ff',13,'right');
+  [-46.3,46.3].forEach(a=>line(c,cx-a*sc,24,cx-a*sc,h-22,'rgba(255,180,84,.35)',[4,4]));
+  text(c,'최대 이각',cx-46.3*sc+30,h-28,'rgba(255,180,84,.8)',11);text(c,'최대 이각',cx+46.3*sc-30,h-28,'rgba(255,180,84,.8)',11);
+  drawSun(c,cx,h/2-2,12);
+  const vx=cx-e*sc,vy=h/2-2;
+  if(hidden){text(c,hidden,cx,h/2+30,'#ff9aa5',12)}
+  if(!(hidden&&hidden.includes('뒤'))){drawPhase(c,vx,vy,7,k,e>=0?1:-1);text(c,'금성',vx,vy-12,'#ffe066',12)}
+}
+function phaseName(k){if(k<0.04)return['거의 보이지 않음(삭)','c-muted'];if(k<0.42)return['초승달(그믐달) 모양','c-blue'];if(k<0.58)return['반달 모양','c-green'];if(k<0.96)return['반달보다 볼록한 모양','c-orange'];return['보름달 모양','c-yellow']}
+function setText(id,t,cls){const el=$(id);el.textContent=t;if(cls)el.className='v '+cls}
+function eStr(e){return Math.abs(e)<0.5?'0°':(e>0?'동방 ':'서방 ')+Math.abs(e).toFixed(1)+'°'}
+
+/* =========== STAGE 1 : 지구 중심설 =========== */
+const G1={dc:0.5,re:0.36,U:158,cx:270,cy:270};
+function geo1(){const s=S.s1,p=s.phi*D2R,t=(s.phi+s.theta)*D2R;
+  const Sx=Math.cos(p),Sy=Math.sin(p),Cx=G1.dc*Sx,Cy=G1.dc*Sy,Vx=Cx+G1.re*Math.cos(t),Vy=Cy+G1.re*Math.sin(t);
+  const d=Math.hypot(Vx,Vy),e=norm180(Math.atan2(Vy,Vx)*R2D-s.phi);
+  const ax=Sx-Vx,ay=Sy-Vy,bx=-Vx,by=-Vy,ca=(ax*bx+ay*by)/(Math.hypot(ax,ay)*Math.hypot(bx,by));
+  const k=(1+ca)/2,rel=(G1.dc+G1.re)/d;return{Sx,Sy,Cx,Cy,Vx,Vy,d,e,k,rel}}
+function P1(x,y){return[G1.cx+x*G1.U,G1.cy-y*G1.U]}
+function draw1(){const c=$('cv1').getContext('2d'),g=geo1(),s=S.s1;c.clearRect(0,0,540,540);c.fillStyle='#040716';c.fillRect(0,0,540,540);drawStars(c,stars1);
+  const[ex,ey]=P1(0,0),[sx,sy]=P1(g.Sx,g.Sy),[ccx,ccy]=P1(g.Cx,g.Cy),[vx,vy]=P1(g.Vx,g.Vy);
+  circle(c,ex,ey,G1.U,'rgba(255,211,77,.35)',[6,6]);circle(c,ex,ey,G1.dc*G1.U,'rgba(195,155,255,.35)',[3,5]);
+  // 금성이 있을 수 있는 영역(부채꼴)
+  const half=Math.asin(G1.re/G1.dc),pa=-s.phi*D2R;c.fillStyle='rgba(94,200,255,.07)';c.beginPath();c.moveTo(ex,ey);c.arc(ex,ey,(G1.dc+G1.re)*G1.U,pa-half,pa+half);c.closePath();c.fill();
+  [-half,half].forEach(h=>line(c,ex,ey,ex+Math.cos(pa+h)*G1.U*1.05,ey+Math.sin(pa+h)*G1.U*1.05,'rgba(94,200,255,.35)',[2,4]));
+  line(c,ex,ey,sx,sy,'rgba(255,211,77,.6)',[2,4]);
+  // 외합 목표 지점
+  const[tx,ty]=P1(g.Sx*1.46,g.Sy*1.46);c.save();c.fillStyle='rgba(255,180,84,.13)';c.beginPath();c.arc(tx,ty,26,0,7);c.fill();c.restore();circle(c,tx,ty,26,'#ffb454',[4,3],1.5);text(c,'★',tx,ty+6,'#ffb454',18);
+  circle(c,ccx,ccy,G1.re*G1.U,'#c39bff',null,1.8);c.fillStyle='#c39bff';c.beginPath();c.arc(ccx,ccy,3,0,7);c.fill();
+  drawSun(c,sx,sy,18);drawEarth(c,ex,ey,12);
+  line(c,ex,ey,vx,vy,'#ffb454',[5,4],1.5);
+  drawLitBody(c,vx,vy,9,Math.atan2(sy-vy,sx-vx));
+  const pp=(s.phi+90)*D2R,[lx,ly]=P1(g.Cx+Math.cos(pp)*(G1.re+0.1),g.Cy+Math.sin(pp)*(G1.re+0.1)),[slx,sly]=P1(g.Sx+Math.cos(pp)*0.24,g.Sy+Math.sin(pp)*0.24);
+  text(c,'지구',ex,ey+28,'#9fe0ff',14);text(c,'태양',slx,sly+5,'#ffe066',14);text(c,'금성',vx,vy-14,'#ffe066',14);
+  text(c,'주전원',lx,ly+4,'#c39bff',12);text(c,'외합 목표(태양 너머)',tx,ty+42,'#ffb454',12);
+  text(c,'지구 중심설 탑뷰 (북쪽 위에서 본 모습)',12,22,'#9aa6d6',14,'left');
+  text(c,'파란 영역 = 금성이 갈 수 있는 범위',12,42,'#5ec8ff',12,'left');
+  // 판독
+  setText('r1e',eStr(g.e));setText('r1d',(g.d).toFixed(2)+' (태양=1)');setText('r1s','×'+g.rel.toFixed(2));setText('r1k',(g.k*100).toFixed(0)+'%');
+  const pn=phaseName(g.k);$('r1p').textContent=pn[0];$('r1p').className=pn[1];
+  drawScope($('scope1'),g.k,14*g.rel,g.e>=0?1:-1,g.k<0.04?'태양 쪽을 등져 어두워요':'');
+  drawSky($('sky1'),g.e,g.k,Math.abs(g.e)<2?'태양 앞(지구–태양 사이) → 보이지 않음':'');
+  $('th1').value=Math.round(s.theta)%360;$('th1v').textContent=Math.round(s.theta)%360+'°';$('ph1').value=Math.round(s.phi)%360;$('ph1v').textContent=Math.round(s.phi)%360+'°';
+  return g}
+function onTheta1(){const b=Math.floor((((S.s1.theta%360)+360)%360)/30);if(!S.s1.bins.has(b)){S.s1.bins.add(b);update1()}}
+function update1(){const s=S.s1,n=s.bins.size,r=s.records.length;
+  $('m1aN').textContent=n;$('m1aBar').style.width=(n/12*100)+'%';$('m1a').textContent=n>=11?'✅':(n>=6?'🟨':'⬜');
+  $('m1bN').textContent=r;$('m1b').textContent=r>=3?'✅':(r>=1?'🟨':'⬜');
+  if(n>=11&&!s.blockedSeen){s.blockedSeen=true;showMsg('s1msg',true,'🚫 주전원을 거의 한 바퀴 돌렸지만 금성은 <span class="c-orange">태양 너머 ★ 외합 목표 지점</span>에 한 번도 도달하지 못했어요! 지구 중심설에서는 주전원 중심이 항상 지구–태양 사이에 있어 금성이 태양 반대편으로 갈 수 없습니다. 그래서 밝은 비율도 <span class="c-yellow">50%를 넘지 못해요</span>.')}
+  $('m1c').textContent=s.blockedSeen?'✅':'⬜';
+  const open=n>=6&&r>=1;$('cpPanel').classList.toggle('hidden',!open);$('cpLock').classList.toggle('hidden',open);
+  $('m1d').textContent=s.cp.every(x=>x.done)?'✅':'⬜';
+  if(S.remedy)checkRemedy();updateProgress()}
+function showMsg(id,ok,html){const el=$(id);el.className='fb '+(ok?'ok':'no');el.innerHTML=html}
+// 조작
+$('th1').addEventListener('input',e=>{S.s1.theta=+e.target.value;onTheta1();draw1()});$('th1').addEventListener('change',op);
+$('ph1').addEventListener('input',e=>{S.s1.phi=+e.target.value;draw1()});$('ph1').addEventListener('change',op);
+$('play1').onclick=()=>{S.s1.playing=!S.s1.playing;$('play1').textContent=S.s1.playing?'⏸ 멈춤':'▶ 자동 공전';op()};
+$('rec1').onclick=()=>{const g=geo1(),pn=phaseName(g.k);S.s1.records.push({e:g.e,d:g.d,rel:g.rel,k:g.k,p:pn[0]});op();render1Table();update1();
+  const el=$('rec1');el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash')};
+function render1Table(){const r=S.s1.records;$('tb1').innerHTML=r.length?r.map((x,i)=>`<tr><td>${i+1}</td><td>${eStr(x.e)}</td><td>${x.d.toFixed(2)}</td><td>×${x.rel.toFixed(2)}</td><td>${(x.k*100).toFixed(0)}%</td><td>${x.p}</td></tr>`).join(''):'<tr><td colspan="6" class="c-muted">아직 기록이 없어요.</td></tr>'}
+(function(){const cv=$('cv1');let drag=false;
+  function pt(ev){const r=cv.getBoundingClientRect();return[(ev.clientX-r.left)*cv.width/r.width,(ev.clientY-r.top)*cv.height/r.height]}
+  function set(ev){const[x,y]=pt(ev),g=geo1(),[ccx,ccy]=P1(g.Cx,g.Cy);const a=Math.atan2(-(y-ccy),x-ccx)*R2D;S.s1.theta=((a-S.s1.phi)%360+360)%360;onTheta1();draw1()}
+  cv.addEventListener('pointerdown',ev=>{drag=true;cv.setPointerCapture(ev.pointerId);set(ev)});
+  cv.addEventListener('pointermove',ev=>{if(drag)set(ev)});
+  cv.addEventListener('pointerup',()=>{if(drag){drag=false;op()}});cv.style.cursor='grab'})();
+// 체크포인트
+const CP=[
+ {q:'지구 중심설 모형에서 금성(주전원의 중심)은 항상 어디에 있나요?',o:['지구와 태양 사이 (지구–태양을 잇는 선 위)','태양보다 더 먼 곳','태양 주위 어디든 자유롭게','지구를 사이에 두고 태양의 반대쪽'],a:0,
+  ok:'정답! 주전원의 중심이 항상 지구–태양 선 위에 있어서 금성은 <span class="c-orange">태양보다 멀리(외합) 갈 수 없어요</span>.',
+  no:'틀렸습니다! 슬라이더를 끝까지 돌려 보세요. 파란 영역 밖, 특히 <span class="c-orange">태양 너머 ★ 지점</span>에는 금성이 한 번도 가지 못해요.'},
+ {q:'지구 중심설 모형에서 지구에서 관측되는 금성의 위상으로 옳은 것은?',o:['항상 보름달 모양이다','초승달·그믐달처럼 반달보다 작은 모양만 나타난다','보름달부터 초승달까지 모든 모양이 나타난다','위상 변화가 전혀 없다'],a:1,
+  ok:'정답! 금성이 항상 태양보다 가까워 밝은 면이 주로 지구 반대쪽을 향하므로 <span class="c-blue">초승달(그믐달) 모양</span>만 보여요. 크기는 변해도 <span class="c-red">보름달 모양은 나타나지 않아요</span>.',
+  no:'틀렸습니다! 망원경 시야와 "밝게 보이는 비율"을 다시 보세요. 금성이 어디에 있든 비율이 <span class="c-yellow">50%를 넘지 않아요</span>.'}];
+function renderCP(){$('cpBox').innerHTML=CP.map((c,i)=>qHTML('cp',i,c,S.s1.cp[i])).join('')}
+function qHTML(pre,i,c,st){const lock=st.done;return `<div class="q" id="${pre}${i}"><div class="qt"><span class="c-orange">${pre==='cp'?'CP':'Q'}${i+1}.</span> ${c.q}${st.remedy&&!st.done?' <span class="tag c-purple">보충 문제</span>':''}</div><div class="opts">${c.o.map((o,j)=>{let cls='opt';if(lock&&j===c.a)cls+=' right';else if(st.wrongPicks.includes(j))cls+=' wrong';return `<button class="${cls}" ${lock||st.wrongPicks.includes(j)?'disabled':''} onclick="answer('${pre}',${i},${j})">${'①②③④'[j]} ${o}</button>`}).join('')}</div><div class="fb ${lock?'ok':(st.wrongPicks.length?'no':'')}">${lock?c.ok:(st.wrongPicks.length?c.no:'')}</div></div>`}
+function answer(pre,i,j){const c=pre==='cp'?CP[i]:QUIZ[i],st=pre==='cp'?S.s1.cp[i]:S.quiz[i];op();
+  const right=j===c.a;
+  if(st.remedy){if(st.remedyFirst==null)st.remedyFirst=right;if(right&&st.remedyFirst)st.remedied=true}
+  else if(st.first==null)st.first=right;
+  if(right)st.done=true;else st.wrongPicks.push(j);
+  if(pre==='cp'){renderCP();update1();if(S.s1.cp.every(x=>x.done))unlock(2)}else{renderQuiz();if(S.quiz.every(x=>x.done))unlock(4)}
+  if(S.remedy)checkRemedy()}
+
+/* =========== STAGE 2 : 태양 중심설 =========== */
+const G2={rv:0.7233,U:200,cx:270,cy:270,wE:360/365.256,wV:360/224.701};
+function geo2At(lE,lV){const Ex=Math.cos(lE*D2R),Ey=Math.sin(lE*D2R),Vx=G2.rv*Math.cos(lV*D2R),Vy=G2.rv*Math.sin(lV*D2R);
+  const ex=Vx-Ex,ey=Vy-Ey,sx=-Ex,sy=-Ey,d=Math.hypot(ex,ey);
+  const e=Math.atan2(sx*ey-sy*ex,sx*ex+sy*ey)*R2D;
+  const ax=-Vx,ay=-Vy,bx=Ex-Vx,by=Ey-Vy,ca=(ax*bx+ay*by)/(Math.hypot(ax,ay)*Math.hypot(bx,by)),k=(1+ca)/2;
+  const as=2*Math.atan(6051.8/(d*149597870.7))*206265;return{Ex,Ey,Vx,Vy,d,e,k,as,rel:as/(2*Math.atan(6051.8/(1.7233*149597870.7))*206265)}}
+const geo2=()=>geo2At(S.s2.lE,S.s2.lV);
+function posKey(e,d){if(Math.abs(e)<5)return d<1?'inf':'sup';if(e>=44)return'east';if(e<=-44)return'west';return null}
+const PNAME={inf:'내합',sup:'외합',east:'동방 최대 이각',west:'서방 최대 이각'};
+function P2(x,y){return[G2.cx+x*G2.U,G2.cy-y*G2.U]}
+function draw2(){const c=$('cv2').getContext('2d'),s=S.s2,g=geo2();c.clearRect(0,0,540,540);c.fillStyle='#040716';c.fillRect(0,0,540,540);drawStars(c,stars2);
+  const[ox,oy]=P2(0,0),[ex,ey]=P2(g.Ex,g.Ey),[vx,vy]=P2(g.Vx,g.Vy);
+  circle(c,ox,oy,G2.U,'rgba(94,200,255,.4)',[6,6]);circle(c,ox,oy,G2.rv*G2.U,'rgba(255,180,84,.45)',[6,6]);
+  // 안내 위치(현재 지구 기준)
+  const dl=Math.acos(G2.rv)*R2D;
+  [[s.lE,'inf'],[s.lE+180,'sup'],[s.lE+dl,null],[s.lE-dl,null]].forEach(([l,key])=>{const gg=geo2At(s.lE,l);key=key||(gg.e>0?'east':'west');
+    const[px,py]=P2(gg.Vx,gg.Vy),on=s.badges[key];c.save();c.globalAlpha=.85;circle(c,px,py,11,on?'#5ff0a0':'rgba(220,220,255,.45)',[3,3],1.4);c.restore();
+    const lx=px+(px-ox)*.16,ly=py+(py-oy)*.16;text(c,PNAME[key]+(on?' ✔':''),lx,ly+4,on?'#5ff0a0':'rgba(200,210,255,.7)',12)});
+  // 최대 이각 접선
+  [dl,-dl].forEach(dd=>{const gg=geo2At(s.lE,s.lE+dd),[px,py]=P2(gg.Vx,gg.Vy);line(c,ex,ey,ex+(px-ex)*1.15,ey+(py-ey)*1.15,'rgba(195,155,255,.3)',[2,4])});
+  line(c,ex,ey,ox,oy,'rgba(255,211,77,.6)',[2,4]);line(c,ex,ey,vx,vy,'#ffb454',[5,4],1.6);
+  drawSun(c,ox,oy,20);drawEarth(c,ex,ey,12);drawLitBody(c,vx,vy,9,Math.atan2(oy-vy,ox-vx));
+  text(c,'지구',ex,ey+28,'#9fe0ff',14);text(c,'금성',vx,vy-14,'#ffe066',14);text(c,'태양',ox,oy+40,'#ffe066',14);
+  text(c,'태양 중심설 탑뷰 (북쪽 위에서 본 모습) · 공전 방향 ↺',12,22,'#9aa6d6',14,'left');
+  text(c,'흐린 원 = 현재 지구에서 본 내합·외합·최대 이각 위치',12,42,'#c8d0ff',12,'left');
+  setText('r2e',eStr(g.e));setText('r2d',g.d.toFixed(2)+' AU');setText('r2s',g.as.toFixed(1)+'″ (×'+g.rel.toFixed(1)+')');setText('r2k',(g.k*100).toFixed(0)+'%');
+  const pn=phaseName(g.k);$('r2p').textContent=pn[0];$('r2p').className=pn[1];
+  $('r2t').innerHTML=Math.abs(g.e)<3?'태양과 같은 방향이라 실제로는 관측이 어려워요.':(g.e>0?'🌇 해 진 뒤 <span class="c-orange">서쪽 하늘</span>에서 보이는 저녁별':'🌅 해 뜨기 전 <span class="c-blue">동쪽 하늘</span>에서 보이는 새벽별');
+  const hidden=Math.abs(g.e)<2.5?(g.d>1?'태양 뒤(외합) → 가려져 보이지 않음':'태양 앞(내합) → 보이지 않음'):'';
+  drawScope($('scope2'),g.k,g.as*1.4,g.e>=0?1:-1,'');drawSky($('sky2'),g.e,g.k,hidden);
+  const lv=((Math.round(s.lV)%360)+360)%360,le=((Math.round(s.lE)%360)+360)%360;$('lv2').value=lv;$('lv2v').textContent=lv+'°';$('le2').value=le;$('le2v').textContent=le+'°';$('day2').textContent=Math.round(s.day);
+  const k=posKey(g.e,g.d);$('near2').innerHTML=k?`현재 위치: <span class="c-green">✨ ${PNAME[k]} 근처! 📸 관측 기록을 눌러 배지를 받으세요</span>`:'현재 위치: <span class="c-muted">일반 위치 (이각 '+eStr(g.e)+')</span>'}
+function update2(){const s=S.s2,b=s.badges;for(const k in b)$('bg_'+k).classList.toggle('on',b[k]);
+  const n=Object.values(b).filter(Boolean).length,open=n>=2;$('fmPanel').classList.toggle('hidden',!open);$('fmLock').classList.toggle('hidden',open);
+  if(s.rec.inf&&s.rec.sup){const r=s.rec.inf.as/s.rec.sup.as;$('ratio2').innerHTML=`📏 시지름 비교: 내합 부근 <span class="c-orange">${s.rec.inf.as.toFixed(1)}″</span> ÷ 외합 부근 <span class="c-blue">${s.rec.sup.as.toFixed(1)}″</span> = 약 <span class="c-yellow">${r.toFixed(1)}배</span> 차이! 지구–금성 거리가 크게 변하기 때문이에요.`}
+  if(S.remedy)checkRemedy();updateProgress()}
+function step2(days){const s=S.s2;s.lE+=G2.wE*s.sE*days;s.lV+=G2.wV*s.sV*days;s.day+=days;draw2()}
+$('lv2').addEventListener('input',e=>{S.s2.lV=+e.target.value;draw2()});$('lv2').addEventListener('change',op);
+$('le2').addEventListener('input',e=>{S.s2.lE=+e.target.value;draw2()});$('le2').addEventListener('change',op);
+$('sv2').addEventListener('input',e=>{S.s2.sV=+e.target.value;$('sv2v').textContent=(+e.target.value).toFixed(1)});$('sv2').addEventListener('change',op);
+$('se2').addEventListener('input',e=>{S.s2.sE=+e.target.value;$('se2v').textContent=(+e.target.value).toFixed(1)});$('se2').addEventListener('change',op);
+$('play2').onclick=()=>{S.s2.playing=!S.s2.playing;$('play2').textContent=S.s2.playing?'⏸ 멈춤':'▶ 공전 시작';op()};
+$('fwd2').onclick=()=>{step2(1);op()};$('back2').onclick=()=>{step2(-1);op()};
+$('rec2').onclick=()=>{const g=geo2(),k=posKey(g.e,g.d),pn=phaseName(g.k),s=S.s2;op();
+  s.records.push({pos:k?PNAME[k]:'일반 위치',e:g.e,d:g.d,as:g.as,k:g.k,p:pn[0]});
+  if(k){const nw=!s.badges[k];s.badges[k]=true;s.rec[k]=g;showMsg('s2msg',true,`📸 <span class="c-green">${PNAME[k]}</span> 관측 성공! 위상: <span class="c-orange">${pn[0]}</span>, 시지름 <span class="c-yellow">${g.as.toFixed(1)}″</span>${nw?' · 새 배지 획득 🎖':''}`)}
+  else showMsg('s2msg',false,'기록은 저장했지만 4개의 핵심 위치(내합·외합·최대 이각)는 아니에요. 그림의 흐린 원 쪽으로 금성을 옮겨 보세요!');
+  render2Table();update2()};
+function render2Table(){const r=S.s2.records;$('tb2').innerHTML=r.length?r.map((x,i)=>`<tr><td>${i+1}</td><td class="${x.pos==='일반 위치'?'c-muted':'c-green'}">${x.pos}</td><td>${eStr(x.e)}</td><td>${x.d.toFixed(2)}</td><td>${x.as.toFixed(1)}″</td><td>${(x.k*100).toFixed(0)}%</td><td>${x.p}</td></tr>`).join(''):'<tr><td colspan="7" class="c-muted">아직 기록이 없어요.</td></tr>'}
+(function(){const cv=$('cv2');let drag=null;
+  function pt(ev){const r=cv.getBoundingClientRect();return[(ev.clientX-r.left)*cv.width/r.width,(ev.clientY-r.top)*cv.height/r.height]}
+  function set(ev){const[x,y]=pt(ev),dx=x-G2.cx,dy=-(y-G2.cy),a=Math.atan2(dy,dx)*R2D;if(drag==='E')S.s2.lE=a;else S.s2.lV=a;draw2()}
+  cv.addEventListener('pointerdown',ev=>{const[x,y]=pt(ev),r=Math.hypot(x-G2.cx,y-G2.cy)/G2.U;drag=r>0.86?'E':'V';cv.setPointerCapture(ev.pointerId);set(ev)});
+  cv.addEventListener('pointermove',ev=>{if(drag)set(ev)});cv.addEventListener('pointerup',()=>{if(drag){drag=null;op()}});cv.style.cursor='grab'})();
+// 보름달 찾기
+const FM=[{key:'inf',lab:'A'},{key:'east',lab:'B'},{key:'sup',lab:'C'},{key:'west',lab:'D'}];
+const FMFB={inf:'틀렸습니다! 내합에서는 금성의 <span class="c-red">어두운 면</span>이 지구를 향해 거의 보이지 않아요(가장 크지만 가는 초승달·삭). 관측 기록장의 내합 데이터를 확인해 보세요.',
+ east:'틀렸습니다! 최대 이각에서는 태양–금성–지구가 약 90°를 이루어 <span class="c-green">반달 모양</span>으로 보여요.',
+ west:'틀렸습니다! 최대 이각에서는 태양–금성–지구가 약 90°를 이루어 <span class="c-green">반달 모양</span>으로 보여요.',
+ sup:'정답! 🎉 외합 부근에서는 금성의 <span class="c-yellow">밝은 면 전체가 지구를 향해 보름달 모양</span>이 돼요. 대신 지구에서 가장 멀어 <span class="c-blue">시지름은 가장 작아요</span>. 이 모습은 금성이 태양 너머로 갈 수 있는 <span class="c-orange">태양 중심설</span>에서만 가능해요!'};
+function renderFM(){const fm=S.s2.fm;$('fmCards').innerHTML=FM.map((f,i)=>`<div class="card ${fm.done&&f.key==='sup'?'right':(fm.wrongPicks.includes(i)?'wrong':'')}" onclick="pickFM(${i})"><canvas id="fmc${i}" width="150" height="150"></canvas><div><span class="c-orange">${f.lab}</span> · ${PNAME[f.key]}</div></div>`).join('');
+  FM.forEach((f,i)=>{const c=$('fmc'+i).getContext('2d'),U=58,cx=75,cy=72;c.fillStyle='#040716';c.fillRect(0,0,150,150);
+    const lE=-90,dl=Math.acos(G2.rv)*R2D,lV={inf:lE,sup:lE+180,east:null,west:null}[f.key];let L=lV;
+    if(L==null){const a=geo2At(lE,lE+dl);L=((a.e>0)===(f.key==='east'))?lE+dl:lE-dl}
+    const g=geo2At(lE,L),P=(x,y)=>[cx+x*U,cy-y*U],[ex,ey]=P(g.Ex,g.Ey),[vx,vy]=P(g.Vx,g.Vy);
+    circle(c,cx,cy,U,'rgba(94,200,255,.4)',[3,3]);circle(c,cx,cy,U*G2.rv,'rgba(255,180,84,.4)',[3,3]);drawSun(c,cx,cy,8);drawEarth(c,ex,ey,6);line(c,ex,ey,vx,vy,'#ffb454',[3,3]);drawLitBody(c,vx,vy,6,Math.atan2(cy-vy,cx-vx));
+    text(c,'지구',ex+18,ey+4,'#9fe0ff',11)});
+  if(fm.done)showMsg('fmFb',true,FMFB.sup);else if(fm.wrongPicks.length)showMsg('fmFb',false,FMFB[FM[fm.wrongPicks[fm.wrongPicks.length-1]].key]);else $('fmFb').className='fb'}
+function pickFM(i){const fm=S.s2.fm;if(fm.done||fm.wrongPicks.includes(i))return;op();const right=FM[i].key==='sup';
+  if(fm.remedy){if(fm.remedyFirst==null)fm.remedyFirst=right;if(right&&fm.remedyFirst)fm.remedied=true}else if(fm.first==null)fm.first=right;
+  if(right){fm.done=true;renderFM();unlock(3)}else{fm.wrongPicks.push(i);renderFM()}if(S.remedy)checkRemedy()}
+
+/* =========== STAGE 3 : 퀴즈 =========== */
+const QUIZ=[
+ {q:'갈릴레이가 망원경으로 관측한 결과, 금성이 보름달 모양과 같이 반달보다 큰 위상으로 관측되었다. 이 현상을 설명할 수 있는 올바른 태양계 모형은 무엇인가?',o:['지구 중심설','태양 중심설','천동설','아리스토텔레스 우주관'],a:1,
+  ok:'정답! 반달보다 큰 위상은 금성이 태양 너머(외합 부근)에 있을 때만 나타나요. 금성이 태양 주위를 도는 <span class="c-orange">태양 중심설</span>만 이를 설명할 수 있어요.',
+  no:'틀렸습니다! 지구 중심설·천동설·아리스토텔레스 우주관은 모두 <span class="c-red">지구가 중심</span>인 모형이라 금성이 태양 너머로 갈 수 없어요. STAGE 2에서 외합 위치의 금성 모양을 다시 확인해 보세요!'},
+ {q:'지구 중심설 모형으로는 보름달 모양의 금성을 관측할 수 없다. 그 이유로 옳은 것은?',o:['금성이 항상 지구와 태양 사이에 있어 태양 반대편(외합)으로 갈 수 없기 때문','금성이 스스로 빛을 내기 때문','금성의 크기가 지구보다 크기 때문','금성이 주전원을 따라 움직이지 않기 때문'],a:0,
+  ok:'정답! 지구 중심설에서 금성은 <span class="c-blue">항상 지구와 태양 사이</span>에 있어 밝은 면의 대부분이 지구 반대쪽을 향해요.',
+  no:'틀렸습니다! 지구 중심설에서는 금성이 항상 지구와 태양 사이에 존재하므로 태양 반대편으로 갈 수 없어 보름달 형태를 만들 수 없습니다. STAGE 1에서 ★ 외합 목표 지점을 다시 확인해 보세요!'},
+ {q:'태양 중심설 모형에서 금성의 시지름이 가장 크게 관측되는 위치는?',o:['내합 부근','외합 부근','동방 최대 이각','서방 최대 이각'],a:0,
+  ok:'정답! 내합 부근에서 금성이 지구와 가장 가까워(약 0.28 AU) <span class="c-orange">시지름이 가장 커요</span>.',
+  no:'틀렸습니다! 시지름은 지구–금성 <span class="c-blue">거리가 가까울수록</span> 커져요. 금성이 지구와 태양 사이에 올 때 가장 가까워요. STAGE 2 관측 기록장의 거리를 비교해 보세요!'},
+ {q:'태양 중심설 모형에서 금성이 반달 모양으로 관측되는 위치는?',o:['내합','외합','최대 이각(동방·서방)','어느 위치에서나 항상 반달'],a:2,
+  ok:'정답! 최대 이각에서는 태양–금성–지구가 이루는 각이 약 90°라서 <span class="c-green">밝은 면이 절반</span>만 보여요.',
+  no:'틀렸습니다! 내합은 초승달·삭, 외합은 보름달에 가까운 모양이에요. 지구에서 본 금성과 태양 사이 각이 가장 클 때를 떠올려 보세요.'},
+ {q:'태양 중심설 모형에서 금성의 위상과 시지름의 관계로 옳은 것은?',o:['보름달 모양에 가까울수록 시지름이 작다','보름달 모양에 가까울수록 시지름이 크다','위상과 시지름은 아무 관계가 없다','위상이 변해도 시지름은 항상 같다'],a:0,
+  ok:'정답! 보름달 모양(외합 부근)일 때는 가장 멀어 <span class="c-blue">작게</span>, 초승달 모양(내합 부근)일 때는 가장 가까워 <span class="c-orange">크게</span> 보여요. 이 관계가 실제 관측과 일치해요!',
+  no:'틀렸습니다! 보름달 모양일 때 금성은 태양 너머에 있어 지구에서 가장 멀어요. 거리가 멀면 시지름은 어떻게 될까요? STAGE 2의 망원경 시야를 다시 비교해 보세요.'}];
+S.quiz=QUIZ.map(mkItem);
+function renderQuiz(){$('quizBox').innerHTML=QUIZ.map((c,i)=>`<div class="panel" style="padding:4px 8px">${qHTML('q',i,c,S.quiz[i])}</div>`).join('');
+  $('quizDone').innerHTML=S.quiz.every(x=>x.done)?'🎉 모든 문항 완료! <button class="btn green" onclick="go(4)">🏆 미션 성공 탭으로 이동</button>':'모든 문항을 맞히면 🏆 미션 성공 탭이 열려요.'}
+
+/* =========== 진행·해금 =========== */
+function updateProgress(){let p=0;const s1=S.s1,s2=S.s2;p+=Math.min(s1.bins.size,11)/11*10+Math.min(s1.records.length,3)/3*5+s1.cp.filter(x=>x.done).length*7.5;
+  p+=Object.values(s2.badges).filter(Boolean).length*5+(s2.fm.done?10:0);p+=S.quiz.filter(x=>x.done).length*9;$('progBar').style.width=Math.min(100,p)+'%'}
+const UNL={2:['🌞 STAGE 2 해금!','지구 중심설의 한계를 확인했어요. 이제 코페르니쿠스의 <span class="c-orange">태양 중심설</span>로 금성의 위상을 탐구해 볼까요?'],
+ 3:['📝 STAGE 3 해금!','보름달 모양 금성의 위치를 찾았어요! 최종 퀴즈에 도전하세요.'],4:['🏆 미션 성공!','모든 미션을 완료했어요. 탐험 보고서와 평가 등급을 확인하세요.']};
+function unlock(n){if(S.unlocked[n-1])return;S.unlocked[n-1]=true;const b=$('nav'+n);b.disabled=false;b.classList.add('unlocked');b.textContent=b.textContent.replace('🔒 ','');
+  modal('🔓',UNL[n][0],UNL[n][1],()=>go(n))}
+function modal(icon,t,body,cb){$('mIcon').textContent=icon;$('mTitle').textContent=t;$('mBody').innerHTML=body;$('modal').classList.add('show');$('mBtn').onclick=()=>{$('modal').classList.remove('show');cb&&cb()}}
+function go(n){if(!S.unlocked[n-1])return;S.stage=n;for(let i=1;i<=4;i++){$('stage'+i).classList.toggle('show',i===n);$('nav'+i).classList.toggle('active',i===n)}
+  if(n===2){draw2();renderFM()}if(n===3)renderQuiz();if(n===4){S.remedy=null;$('remedyBanner').classList.remove('show');renderResult()}window.scrollTo({top:0,behavior:'smooth'})}
+$('stuName').addEventListener('input',e=>{$('stuName2').value=e.target.value;if(S.stage===4)renderResult()});$('stuName2').addEventListener('input',e=>{$('stuName').value=e.target.value;renderResult()});
+
+/* =========== 평가 =========== */
+function itemPts(st,full,rem,part){return st.first===true?full:(st.remedied?rem:(st.done?part:0))}
+function evaluate(){const s1=S.s1,s2=S.s2,nb=s1.bins.size,nr=s1.records.length,badges=Object.values(s2.badges).filter(Boolean).length;
+  const items=[
+   {key:'s1explore',name:'STAGE 1 주전원 탐색',desc:`12개 구간 중 ${nb}개 탐색`,pts:nb>=11?10:Math.round(nb/11*10),max:10,
+    fix:'STAGE 1에서 금성을 주전원 한 바퀴(구간 11개 이상) 돌려 금성이 태양 너머로 갈 수 없음을 확인하세요.'},
+   {key:'s1rec',name:'STAGE 1 관측 기록',desc:`${nr}회 기록`,pts:Math.round(Math.min(nr,3)/3*5),max:5,fix:'STAGE 1에서 금성이 가까울 때와 멀 때 등 서로 다른 위치를 3회 이상 📸 기록하세요.'},
+   {key:'s1cp',name:'STAGE 1 체크포인트',desc:s1.cp.map((c,i)=>`CP${i+1} ${c.first?'첫 시도 정답':(c.remedied?'보충 정답':'재시도 정답')}`).join(', '),pts:s1.cp.reduce((a,c)=>a+itemPts(c,5,4,2),0),max:10,
+    fix:'처음에 틀린 체크포인트 문항을 보충 문제로 다시 풀어 보세요.'},
+   {key:'s2pos',name:'STAGE 2 핵심 위치 관측',desc:`배지 ${badges}/4개 (${Object.keys(s2.badges).filter(k=>s2.badges[k]).map(k=>PNAME[k]).join(', ')||'없음'})`,pts:badges*5,max:20,
+    fix:'STAGE 2에서 아직 기록하지 못한 위치('+Object.keys(s2.badges).filter(k=>!s2.badges[k]).map(k=>PNAME[k]).join(', ')+')에 금성을 배치하고 📸 기록하세요.'},
+   {key:'s2fm',name:'STAGE 2 보름달 위치 찾기',desc:s2.fm.first?'첫 시도 정답':(s2.fm.remedied?'보충 정답':`${s2.fm.wrongPicks.length+1}번째 시도에 정답`),pts:itemPts(s2.fm,10,8,4),max:10,
+    fix:'보름달 위치 찾기 미션을 다시 수행하세요. 외합·내합·최대 이각에서의 밝은 면 방향을 비교해 보세요.'},
+   {key:'quiz',name:'STAGE 3 최종 퀴즈',desc:`첫 시도 정답 ${S.quiz.filter(q=>q.first).length}/5`+(S.quiz.some(q=>q.remedied)?`, 보충 정답 ${S.quiz.filter(q=>q.remedied).length}`:''),pts:S.quiz.reduce((a,q)=>a+itemPts(q,8,6,3),0),max:40,
+    fix:'처음에 틀린 퀴즈 문항('+S.quiz.map((q,i)=>(!q.first&&!q.remedied)?'Q'+(i+1):null).filter(Boolean).join(', ')+')을 보충 문제로 다시 풀어 보세요.'},
+   {key:'ops',name:'시뮬레이션 조작 참여도',desc:`총 ${S.ops}회 조작`,pts:S.ops>=40?5:(S.ops>=20?3:1),max:5,fix:'STAGE 1·2에서 슬라이더·마우스 끌기·공전 속도 조절을 더 다양하게 해 보세요(총 40회 이상).'}];
+  const total=items.reduce((a,b)=>a+b.pts,0),grade=total>=90?'A':total>=80?'B':total>=70?'C':total>=60?'D':'F';return{items,total,grade}}
+const GCOL={A:'#5ff0a0',B:'#5ec8ff',C:'#ffe066',D:'#ffb454',F:'#ff6b7a'};
+function narrative(ev){const nm=($('stuName').value||'탐험 대원').trim(),it=Object.fromEntries(ev.items.map(x=>[x.key,x]));const P=[];
+  const open={A:'모든 미션을 매우 훌륭하게 수행했어요!',B:'대부분의 미션을 잘 수행했어요.',C:'핵심 미션은 완료했지만 보완할 부분이 있어요.',D:'미션을 끝까지 완주했지만 여러 부분에서 보완이 필요해요.',F:'미션을 완주한 것을 칭찬해요. 하지만 핵심 개념을 다시 다져 볼 필요가 있어요.'}[ev.grade];
+  P.push(`<span class="c-orange">${nm}</span> 학생은 ${open}`);
+  const s1=S.s1;let t=`STAGE 1에서는 주전원 12개 구간 중 <span class="c-blue">${s1.bins.size}개</span>를 탐색하고 관측 기록을 <span class="c-blue">${s1.records.length}회</span> 남겼어요. `;
+  t+=s1.blockedSeen?'금성을 거의 한 바퀴 돌려 보며 <span class="c-green">지구 중심설에서는 금성이 태양 너머(외합)에 갈 수 없다</span>는 구조적 한계를 직접 확인했어요. ':'다만 주전원을 충분히 돌려 보지 않아 금성이 태양 너머에 갈 수 없다는 점을 끝까지 확인하지는 못했어요. ';
+  t+=s1.cp.every(c=>c.first)?'체크포인트 문항도 모두 첫 시도에 맞혀 지구 중심설에서 금성이 항상 초승달·그믐달 모양만 보인다는 점을 잘 이해했어요.':'체크포인트 문항 중 처음에 틀린 문항이 있어, 지구 중심설에서 금성의 위치와 위상의 관계를 한 번 더 정리할 필요가 있어요.';P.push(t);
+  const s2=S.s2,nb=Object.values(s2.badges).filter(Boolean).length;t=`STAGE 2에서는 4개의 핵심 위치 중 <span class="c-blue">${nb}개</span>를 관측했어요. `;
+  if(s2.rec.inf&&s2.rec.sup)t+=`내합과 외합의 시지름이 약 <span class="c-yellow">${(s2.rec.inf.as/s2.rec.sup.as).toFixed(1)}배</span> 차이 난다는 것을 직접 비교했어요. `;else t+='내합과 외합을 모두 관측하지 않아 시지름 변화(약 6배)를 직접 비교하지 못했어요. ';
+  t+=s2.fm.first?'보름달 모양의 금성이 외합 부근에서 나타난다는 것을 한 번에 찾아냈어요.':'보름달 모양의 금성 위치를 찾는 데 시행착오가 있었으니, 외합에서 금성의 밝은 면이 지구를 향한다는 점을 다시 떠올려 보세요.';P.push(t);
+  const qf=S.quiz.filter(q=>q.first).length;t=`최종 퀴즈에서는 5문항 중 <span class="c-blue">${qf}문항</span>을 첫 시도에 맞혔어요. `;
+  const wrong=S.quiz.map((q,i)=>!q.first?i:null).filter(x=>x!=null);
+  const topic=['갈릴레이 관측을 설명하는 모형','지구 중심설에서 보름달 모양이 안 되는 이유','시지름이 가장 큰 위치','반달 모양이 되는 위치','위상과 시지름의 관계'];
+  t+=wrong.length?`특히 <span class="c-red">${wrong.map(i=>topic[i]).join(', ')}</span>에 대한 이해를 보완하면 좋겠어요.`:'모든 개념을 정확하게 이해하고 있어요.';P.push(t);
+  P.push('📌 핵심 정리: 지구 중심설은 금성의 위상이 항상 <span class="c-blue">초승달·그믐달 모양</span>일 것으로 예측하지만, 태양 중심설은 금성이 <span class="c-yellow">보름달(외합)→반달(최대 이각)→초승달(내합)</span>로 변하고, 보름달에 가까울수록 <span class="c-blue">시지름이 작아진다</span>고 예측해요. 갈릴레이의 실제 관측 결과와 부합하는 모형은 <span class="c-orange">태양 중심설</span>이에요.');
+  return P}
+let lastEval=null;
+function renderResult(){const ev=evaluate();lastEval=ev;$('gradeBig').textContent=ev.grade;$('gradeBig').style.color=GCOL[ev.grade];$('gradeBig').style.borderColor=GCOL[ev.grade];$('scoreBig').textContent=ev.total;
+  $('scoreTb').innerHTML=ev.items.map(x=>`<tr><td>${x.name}</td><td style="text-align:left">${x.desc}</td><td class="${x.pts>=x.max?'c-green':'c-orange'}">${x.pts}/${x.max}</td></tr>`).join('');
+  $('narr').innerHTML=narrative(ev).map(p=>`<p style="margin:6px 0">${p}</p>`).join('');
+  const weak=ev.items.filter(x=>x.pts<x.max);
+  $('remedyList').innerHTML=ev.grade==='A'&&!weak.length?'<span class="c-green">🎉 최고 등급 A! 모든 수행을 완벽하게 해냈어요. 보충 미션이 없습니다.</span>':
+   (ev.grade==='A'?'<div class="c-green" style="margin-bottom:8px">🎉 이미 A등급이에요! 만점에 도전하려면 아래 항목만 보충하세요.</div>':`<div style="margin-bottom:8px">다음 등급으로 올라가려면 <span class="c-orange">아래의 부족한 수행만</span> 다시 해 보세요. 보충 미션을 마치고 🏆 결과 다시 보기를 누르면 점수가 새로 계산돼요.</div>`)+
+   weak.map(x=>`<div class="q" style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap"><div><span class="c-red">▲ ${x.name}</span> <span class="c-muted">(${x.pts}/${x.max})</span><br>${x.fix}</div><button class="btn orange" onclick="startRemedy('${x.key}')">🔁 보충 미션 시작</button></div>`).join('');
+  $('quizSum').innerHTML='<table><thead><tr><th>문항</th><th>첫 시도</th><th>최종</th></tr></thead><tbody>'+QUIZ.map((q,i)=>{const s=S.quiz[i];return `<tr><td style="text-align:left">Q${i+1}. ${q.q.length>46?q.q.slice(0,46)+'…':q.q}</td><td class="${s.first?'c-green':'c-red'}">${s.first?'⭕ 정답':'❌ 오답'}</td><td class="c-green">${s.remedied?'보충 정답':'정답'}</td></tr>`}).join('')+'</tbody></table>'}
+const RTXT={s1explore:'🔁 보충 미션: STAGE 1에서 주전원 구간을 11개 이상 탐색하세요.',s1rec:'🔁 보충 미션: STAGE 1에서 관측 기록을 3회 이상 남기세요.',s1cp:'🔁 보충 미션: STAGE 1 체크포인트의 보충 문제를 첫 시도에 맞혀 보세요.',
+ s2pos:'🔁 보충 미션: STAGE 2에서 남은 핵심 위치를 관측·기록하세요.',s2fm:'🔁 보충 미션: STAGE 2 보름달 위치 찾기를 첫 시도에 맞혀 보세요.',quiz:'🔁 보충 미션: STAGE 3의 보충 문제를 첫 시도에 맞혀 보세요.',ops:'🔁 보충 미션: STAGE 1·2에서 다양한 조작을 해 보세요 (총 40회 이상).'};
+function startRemedy(key){S.remedy=key;$('remedyText').textContent=RTXT[key];$('remedyBanner').classList.add('show');
+  const reset=st=>{if(!st.first&&!st.remedied){st.done=false;st.remedy=true;st.remedyFirst=null;st.wrongPicks=[]}};
+  if(key==='s1cp'){S.s1.cp.forEach(reset);renderCP()}if(key==='s2fm')reset(S.s2.fm);if(key==='quiz')S.quiz.forEach(reset);
+  const tgt={s1explore:1,s1rec:1,s1cp:1,s2pos:2,s2fm:2,quiz:3,ops:1}[key];go(tgt);$('remedyBanner').classList.add('show');
+  if(key==='s1cp')setTimeout(()=>$('cpPanel').scrollIntoView({behavior:'smooth'}),300);if(key==='s2fm')setTimeout(()=>$('fmPanel').scrollIntoView({behavior:'smooth'}),300)}
+function checkRemedy(){const k=S.remedy;if(!k)return;const ev=evaluate(),it=ev.items.find(x=>x.key===k);
+  let finished=it.pts>=it.max;if(k==='s1cp')finished=S.s1.cp.every(c=>c.done);if(k==='s2fm')finished=S.s2.fm.done;if(k==='quiz')finished=S.quiz.every(q=>q.done);
+  if(finished){$('remedyText').innerHTML='✅ 보충 미션 완료! 결과를 다시 확인해 보세요.';}}
+
+/* =========== 보고서 이미지 / PDF =========== */
+function wrapLines(c,txt,maxW){const out=[];txt.split('\n').forEach(par=>{let line='';for(const ch of par){const t=line+ch;if(c.measureText(t).width>maxW&&line){out.push(line);line=ch}else line=t}out.push(line)});return out}
+const strip=h=>{const d=document.createElement('div');d.innerHTML=h;return d.textContent};
+function buildReport(){return new Promise(res=>{const ev=evaluate(),nm=($('stuName').value||'(이름 미입력)').trim(),W=1100,pad=50,cw=W-pad*2;
+  const cv=document.createElement('canvas');cv.width=W;cv.height=4200;const c=cv.getContext('2d');
+  const logo=new Image();logo.onload=logo.onerror=()=>{
+    c.fillStyle='#0b1235';c.fillRect(0,0,W,cv.height);c.fillStyle='#1b2560';c.fillRect(0,0,W,120);
+    c.textBaseline='alphabetic';text(c,'🪐 천체 탐험 미션: 금성의 위상과 태양계 모형 대결',pad,55,'#ffe066',30,'left');text(c,'탐험 보고서 · 미션 성공',pad,92,'#9aa6d6',20,'left');
+    try{c.fillStyle='#fff';c.beginPath();c.arc(W-pad-40,60,40,0,7);c.fill();c.drawImage(logo,W-pad-80,20,80,80)}catch(e){}
+    text(c,'EARTH LJY',W-pad-95,52,'#5ec8ff',16,'right');text(c,'earthljy@ai.jne.kr',W-pad-95,76,'#9aa6d6',15,'right');
+    let y=170;text(c,'탐험 대원 : '+nm,pad,y,'#ffb454',24,'left');text(c,'날짜 : '+new Date().toLocaleDateString('ko-KR'),W-pad,y,'#9aa6d6',18,'right');
+    y+=30;c.strokeStyle=GCOL[ev.grade];c.lineWidth=5;c.beginPath();c.arc(pad+70,y+75,65,0,7);c.stroke();text(c,ev.grade,pad+70,y+105,GCOL[ev.grade],86);
+    text(c,'종합 등급',pad+70,y+170,'#9aa6d6',16);text(c,`총점 ${ev.total} / 100`,pad+70,y+195,'#ffe066',20);
+    let ty=y+10;const tx=pad+180;c.font=`17px ${FONT}`;
+    ev.items.forEach(x=>{text(c,x.name,tx,ty+18,'#5ec8ff',17,'left');text(c,`${x.pts}/${x.max}`,W-pad,ty+18,x.pts>=x.max?'#5ff0a0':'#ffb454',17,'right');
+      c.font=`15px ${FONT}`;const ls=wrapLines(c,x.desc,cw-180-260);text(c,ls[0],tx+250,ty+18,'#e8ecff',15,'left');ty+=30});
+    y=Math.max(y+215,ty+10);
+    const sec=(t)=>{y+=22;c.fillStyle='#2d3b7c';c.fillRect(pad,y,cw,2);y+=36;text(c,t,pad,y,'#ffe066',22,'left');y+=14};
+    sec('📝 수행 과정 종합 피드백');c.font=`17px ${FONT}`;
+    narrative(ev).forEach(p=>{wrapLines(c,strip(p),cw).forEach(l=>{y+=28;text(c,l,pad,y,'#e8ecff',17,'left')});y+=10});
+    sec('⬆ 등급 올리기 안내');const weak=ev.items.filter(x=>x.pts<x.max);c.font=`17px ${FONT}`;
+    if(!weak.length){y+=28;text(c,'모든 수행을 완벽하게 해냈어요! 보충 미션이 없습니다.',pad,y,'#5ff0a0',17,'left')}
+    weak.forEach(x=>{y+=28;text(c,'▲ '+x.name,pad,y,'#ff6b7a',17,'left');wrapLines(c,x.fix,cw-20).forEach(l=>{y+=26;text(c,l,pad+20,y,'#e8ecff',16,'left')})});
+    sec('❓ 퀴즈 응답 요약 (객관식)');QUIZ.forEach((q,i)=>{const s=S.quiz[i];c.font=`16px ${FONT}`;const l=wrapLines(c,`Q${i+1}. ${q.q}`,cw-160);
+      l.forEach((ln,j)=>{y+=26;text(c,ln,pad,y,'#e8ecff',16,'left')});text(c,s.first?'⭕ 첫 시도 정답':(s.remedied?'🔁 보충 정답':'❌ 첫 시도 오답'),W-pad,y,s.first?'#5ff0a0':'#ff6b7a',16,'right');
+      y+=24;text(c,'정답: '+q.o[q.a],pad+20,y,'#ffb454',15,'left');y+=6});
+    sec('📒 STAGE 2 관측 기록');S.s2.records.slice(0,12).forEach((r,i)=>{y+=26;text(c,`${i+1}. ${r.pos} · 이각 ${eStr(r.e)} · 거리 ${r.d.toFixed(2)} AU · 시지름 ${r.as.toFixed(1)}″ · 밝은 비율 ${(r.k*100).toFixed(0)}% · ${r.p}`,pad,y,'#e8ecff',15,'left')});
+    if(!S.s2.records.length){y+=26;text(c,'기록 없음',pad,y,'#9aa6d6',15,'left')}
+    y+=50;text(c,'EARTH LJY · earthljy@ai.jne.kr',W/2,y,'#9aa6d6',14);y+=30;
+    const out=document.createElement('canvas');out.width=W;out.height=y;out.getContext('2d').drawImage(cv,0,0);res(out)};logo.src=LOGO})}
+function fname(ext){return `금성위상미션_${($('stuName').value||'탐험대원').trim()}.${ext}`}
+async function saveImage(){op();const cv=await buildReport();const a=document.createElement('a');a.href=cv.toDataURL('image/png');a.download=fname('png');document.body.appendChild(a);a.click();a.remove()}
+async function savePDF(){op();const cv=await buildReport();
+  if(!(window.jspdf&&window.jspdf.jsPDF)){modal('⚠️','PDF 라이브러리를 불러오지 못했어요','인터넷 연결을 확인해 주세요. 대신 인쇄 창에서 "PDF로 저장"을 선택할 수 있어요.',()=>{const w=window.open('');if(w){w.document.write(`<img src="${cv.toDataURL()}" style="width:100%">`);w.document.close();w.print()}});return}
+  const pdf=new window.jspdf.jsPDF('p','mm','a4'),pw=190,ph=277,pxPerMm=cv.width/pw,sliceH=Math.floor(ph*pxPerMm);
+  for(let y=0,p=0;y<cv.height;y+=sliceH,p++){const h=Math.min(sliceH,cv.height-y),t=document.createElement('canvas');t.width=cv.width;t.height=h;t.getContext('2d').drawImage(cv,0,y,cv.width,h,0,0,cv.width,h);
+    if(p>0)pdf.addPage();pdf.setFillColor(11,18,53);pdf.rect(0,0,210,297,'F');pdf.addImage(t.toDataURL('image/jpeg',0.92),'JPEG',10,10,pw,h/pxPerMm)}
+  pdf.save(fname('pdf'))}
+
+/* =========== 애니메이션 루프 =========== */
+function loop(){if(S.s1.playing&&S.stage===1){const sp=+$('spd1').value;S.s1.phi=(S.s1.phi+0.6*sp)%360;S.s1.theta=(S.s1.theta+0.375*sp)%360;onTheta1();draw1()}
+  if(S.s2.playing&&S.stage===2)step2(1.5);requestAnimationFrame(loop)}
+draw1();renderCP();update1();draw2();update2();renderFM();renderQuiz();loop();
+</script>
+</body>
+</html>
